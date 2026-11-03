@@ -1,71 +1,218 @@
-# ZJU-blockchain-course-2026
+# MiniDEX · AMM Exchange Lab
 
-⬆ 可以️修改成你自己的项目名。
+基于恒定乘积 AMM 的本地去中心化交易所 DApp。项目从浙江大学区块链课程第二次作业模板扩展，实现 ERC20 测试币、用户创建交易池、双向兑换、ERC721 流动性仓位，以及 20 个真实链上地址的随机模拟。
 
-> 第二次作业要求（以下内容提交时可以删除）：
-> 
-> 基于 AMM 的去中心化交易所 DEX 和原子套利，参与方包括：交易用户（User）、流动性提供者（Liquidity Provider）、套利者（Arbitrageur）
->
-> **背景**：去中心化交易所（DEX）采用自动做市商（AMM）机制，通过智能合约维护代币资产池，使用户可以直接与区块链上的资产池进行交易，无需依赖中心化交易机构进行撮合。在一个资产池部署后，流动性提供者可以往其中加入代币或者减少代币来添加/撤销流动性，用户在资产池的交易会让代币价格发生变化。套利者可以利用价格差盈利。
->
-> 建立一个/多个基于 AMM 的去中心化交易所 DApp（参考 [Uniswap V2/V3/V4](https://app.uniswap.org/)，实现时参考 Uniswap V2 版本即可），在网站中：
->
-> - ERC20 Token 创建。实现至少两个 ERC20 Token（如代币 A 和代币 B 等）。要求实现模拟多个用户分别领取测试用的 Token，也可以领取测试所需的以太币。
-> - 创建 AMM 交易池。在网站前端，用户可以在交易所中基于创建好的、自己已有的各种 ERC20 代币来创建交易池（如 A/B 交易池、A/ETH 交易池等），交易池需要维护代币的储备量、根据恒定乘积公式计算交易价格（考虑手续费），提供给用户交易、添加/撤销流动性的接口，并按一定比例收取交易手续费，用于提供给流动性提供者奖励。
-> - 提供/移除流动性。在网站前端，用户可以向交易池中注入代币来添加流动性，添加流动性后，用户获得一个代表该流动性证明的 ERC721 NFT，包含流动性池信息、用户提供的流动性数量、时间信息等；用户可以在前端查看每个池子的流动性来源和自己的 NFT 信息；用户可以通过销毁 ERC721 NFT 来取回对应的代币和相应的手续费分红。
-> - 模拟交易、提供/移除流动性。为了测试交易所运行情况，需要创建至少 20 个模拟用户/地址。每个用户随机执行（也可以不同的用户分别执行）代币交易、添加/撤销流动性等操作，稳定运行一段时间。上述流程中可以自定义手续费和分红奖励机制，也可以参考已有项目的设计。
-> - Bonus（5分，若想要完成，可以直接将功能补充和整合进上述要求中）：
->   1. （2分）部署两个或多个交易所，每个交易所可以对相同的代币对有不同的池子。模拟用户在不同交易池中随机交易，让不同的交易池形成价格差。
->   2. （3分）实现套利合约：当检测到不同交易所的池子之间、或同一交易所内部，存在价格差时，模拟套利者：自动在低价交易所购买代币，在高价交易所出售代币，获得利润。要求：套利过程在一次交易中完成；如果套利失败，整个交易需要 revert；展示套利前后的资产的价格、数量变化和盈利情况。
-> - 可以对上述需求进行合理更改和说明。请大家专注于功能实现，网站UI美观程度不纳入评分标准，能让用户能够舒适操作即可。
+> 课程教学项目，运行于本机 Hardhat 链。当前完成基础要求，不包含多交易所与原子套利 Bonus。代码由 AI 辅助实现，提交者应阅读、理解并按课程要求说明使用情况。
 
-**以下内容为作业仓库的README.md中需要描述的内容。请根据自己的需要进行修改并提交。**
+## 已完成功能
 
-作业提交方式为：**提交视频文件**和**仓库的链接**到指定邮箱。⚠️ 不要发送源代码到邮箱，只需要提供**公开可见**的仓库链接（记得不要匿名仓库）。
+| 作业要求 | 实现 |
+| --- | --- |
+| 至少两个 ERC20 | 同一 TestToken 合约部署为 TKA、TKB；每地址每小时可领取 10,000 个 |
+| 用户创建 AMM 池子 | 前端输入两个标准 ERC20 地址建池；地址排序去重；支持多个交易对 |
+| 恒定乘积交易 | 双向兑换、0.3% 手续费、最低接收量、交易有效期 |
+| 添加流动性 | 按现有比例接受两币，未使用的资产保留在用户钱包 |
+| ERC721 流动性凭证 | 每次注入获得独立 NFT，链上保存池子、份额、投入、时间和原始提供者 |
+| 来源与仓位查询 | 展示每个池子的活跃仓位、原始提供者、当前所有者和本人 NFT |
+| 移除流动性 | 当前 NFT 所有者整份赎回并销毁凭证；按当前储备分配资产与手续费权益 |
+| 多用户模拟 | 20 个地址执行 300 次随机操作；记录交易哈希并持续校验资产及份额 |
+| 简易前端 | React + ethers；支持 MetaMask、本地演示账户和交易回执 |
 
-## 如何运行
+## 快速运行
 
-补充如何完整运行你的应用，例如：
+要求 Node.js 24、npm、Git；浏览器建议 Chrome。两个工程均提交了 package-lock.json，请优先使用 npm ci。
 
-1. 在本地启动ganache应用。
+Windows 一键启动，在本项目根目录执行：
 
-2. 在 `./contracts` 中安装需要的依赖，运行如下的命令：
-    ```bash
-    npm install
-    ```
-3. 在 `./contracts` 中编译合约，运行如下的命令：
-    ```bash
-    npx hardhat compile
-    ```
-4. ...
-5. ...
-6. 在 `./frontend` 中安装需要的依赖，运行如下的命令：
-    ```bash
-    npm install
-    ```
-7. 在 `./frontend` 中启动前端程序，运行如下的命令：
-    ```bash
-    npm run start
-    ```
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+```
 
-## 功能实现分析
+访问 **http://127.0.0.1:3000**，在左侧选择测试账户，点击连接即可使用。没有钱包插件也能使用真实本地链交易。
 
-简单描述：项目完成了要求的哪些功能？每个功能具体是如何实现的？
+启动并运行一轮完整模拟：
 
-建议分点列出。
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start.ps1 -Simulate
+```
 
-## 项目运行截图
+停止一键脚本启动的服务：
 
-放一些项目运行截图。
+```powershell
+powershell -ExecutionPolicy Bypass -File .\stop.ps1
+```
 
-项目运行成功的关键页面和流程截图。主要包括操作流程以及和区块链交互的截图。
+启动脚本将服务隐藏运行，日志和 PID 保存在忽略提交的 `.runtime/` 中。复用已有的同网络节点；首次或节点重启后自动部署。合约修改后请加 `-Redeploy` 重新部署。
 
-## 参考内容
+### 手动运行
 
-- 课程的参考Demo见：[DEMOs](https://github.com/LBruyne/blockchain-course-demos)。
+终端一（保持运行）：
 
-- 快速实现 ERC721 和 ERC20：[模版](https://wizard.openzeppelin.com/#erc20)。记得安装相关依赖，例如 ``"@openzeppelin/contracts": "^5.0.0"``。
+```powershell
+cd contracts
+npm ci
+npm run node
+```
 
-- 如何实现ETH和ERC20的兑换？ [参考讲解](https://www.wtf.academy/en/docs/solidity-103/DEX/)
+终端二：
 
-如果有其它参考的内容，也请在这里陈列。
+```powershell
+cd contracts
+npm run deploy
+```
+
+部署脚本会部署两种代币和 DEX，为部署者领取测试币，并创建 1,000 TKA / 1,000 TKB 的初始池子。ABI 与地址自动写入 `deployments/localhost.json` 和 `frontend/src/generated/deployment.json`。
+
+终端三（保持运行）：
+
+```powershell
+cd frontend
+npm ci
+npm start
+```
+
+默认 RPC 为 `http://127.0.0.1:8545`，Chain ID 为 `31337`。完整按钮操作及钱包说明见 [演示指南](docs/DEMO.md)。
+
+### MetaMask
+
+添加上述本地网络，将 Hardhat 节点打印的一个测试账户导入钱包，再在页面点击“连接 MetaMask”。链上写入操作需在钱包中确认。账户已有测试 ETH；代币通过水龙头领取。私钥只在本地节点输出，不写入前端源码或仓库。
+
+## 测试与 20 用户模拟
+
+```powershell
+cd contracts
+npm run typecheck
+npm test
+npm run simulate
+```
+
+模拟连接已启动并部署的 localhost 链，取前 20 个已解锁账户，为每人领取和授权代币、初始化一个仓位，再执行 300 次随机兑换/添加/移除操作。默认操作间隔 250ms，随机种子 20261103。
+
+可在 PowerShell 调整：
+
+```powershell
+$env:SIM_STEPS = '300'
+$env:SIM_SEED = '20261103'
+$env:SIM_INTERVAL_MS = '250'
+npm run simulate
+```
+
+模拟在相同初始链状态、种子和配置下可复现。初始化交易不计入 300 次随机操作。运行异常立即退出；仅完整成功的运行才覆盖成功报告。
+
+报告生成在 [reports/simulation.json](reports/simulation.json)，并同步到前端 `public/simulation-report.json`。“链上活动”页展示报告。报告包括全部参与地址、逐次操作、交易哈希、Gas、交易费和最终储备。仓库中的报告是一次真实运行的记录；重新部署后，请重新运行模拟获取与当前链对应的新报告。
+
+校验内容：
+
+- 每次兑换后，恒定乘积 k 不下降。
+- DEX 持有的代币余额、各池储备和合约负债记账一致。
+- 每池 NFT 份额总和加永久锁定份额等于 totalShares。
+- 20 个地址都实际参与了随机操作，交易回执均成功。
+
+前端检查：
+
+```powershell
+cd frontend
+npm test
+npm run build
+npm run test:e2e
+```
+
+浏览器验收需要节点和前端已启动，默认使用已安装的 Chrome。它会实际领取代币、部署额外的 TKC、在前端创建新池、添加流动性获得 NFT、兑换、查看回执和赎回，并检查移动端布局；会推进本地链时间以重新验证水龙头。自动化使用本地账户模式，MetaMask 扩展弹窗需本人手动确认。
+
+## 实现分析
+
+### AMM 与手续费
+
+`MiniDEX.sol` 使用一个合约管理多个池子，每池单独记录两币储备。储备不会从整个合约余额直接推算，避免共享同一代币的多个池子相互混账。
+
+对输入数量 d、输入储备 x、输出储备 y：
+
+```text
+withFee = d × 9970
+amountOut = floor(withFee × y / (x × 10000 + withFee))
+```
+
+全部输入 d 进入储备，0.3% 费用隐含留在池子中，不另设领取接口，也不额外重复分红。链上重新计算报价并验证最低收到数量；前端报价仅供预览。
+
+### 流动性份额与 NFT
+
+首次注入时：
+
+```text
+root = floor(sqrt(amountA × amountB))
+永久锁定份额 = 1000（最小整数单位）
+用户 shares = root - 1000
+```
+
+锁定少量份额避免池子被完全抽空。锁定份额没有对应的用户 NFT。
+
+后续注入先按现有储备比例确定实际接受数量，再计算：
+
+```text
+shares = min(amountA × totalShares / reserveA,
+             amountB × totalShares / reserveB)
+```
+
+每笔注入都生成可转让的 ERC721。`tokenURI` 返回链上 Base64 JSON，包含 poolId、shares、初始投入、创建时间及原始提供者；`ownerOf` 表示当前所有者。
+
+销毁时：
+
+```text
+取回 A = floor(shares × reserveA / totalShares)
+取回 B = floor(shares × reserveB / totalShares)
+```
+
+手续费已经进入储备，所以取回金额包含按份额享有的手续费权益。兑换会改变资产比例，因此赎回时两种代币数量不一定都比初始投入大。每个 NFT 采用整份赎回，没有部分减仓。
+
+### 保护与边界
+
+使用 OpenZeppelin SafeERC20、ERC721Enumerable 和 ReentrancyGuard；处理滑点、截止时间、授权不足、无效池子、重复池子和所有权。资金状态在外部回调前完成更新或受重入锁保护。测试专门覆盖 NFT 接收回调的重入尝试。
+
+仅支持标准、无转账税、非 rebase 的 ERC20。输入转账数量不符时拒绝并回滚。新池初始价格由首次提供者决定；没有路由器、多跳交易、原生 ETH 交易对、预言机、升级代理或协议分成。手续费全部按 LP 份额归属，不实现生产 Uniswap 的额外治理机制。
+
+### 环境兼容
+
+沿用模板 Hardhat 3.19、ethers 6.17、OpenZeppelin 5.4 和 Solidity 0.8.20。编译器使用项目内固定的 `solc/soljson.js`，避免首次编译下载与当前 Windows 缓存跨盘链接问题。Windows 原生 EDR 包作为可选依赖锁定版本，其他平台可跳过。
+
+## 项目结构
+
+```text
+contracts/
+  contracts/TestToken.sol        两种测试币共用实现
+  contracts/MiniDEX.sol          池子、兑换、份额及 ERC721
+  contracts/mocks/TestHelpers.sol 仅测试使用的辅助合约
+  scripts/deploy.ts              部署、初始化与导出 ABI
+  scripts/simulate.ts            20 用户持续模拟
+  test/testMiniDEX.ts            19 项合约测试
+frontend/
+  src/App.tsx                   页面与交易交互
+  src/lib/dex.ts                RPC、数据查询与金额处理
+  src/generated/deployment.json 部署脚本自动生成
+  e2e/workflow.spec.ts           浏览器真实链验收
+reports/                        运行报告
+frontend/scripts/               验收与截图辅助脚本
+start.ps1 / stop.ps1             Windows 本地启动、停止
+```
+
+## 运行截图
+
+以下截图均来自本地真实链验收。
+
+![兑换页面](docs/screenshots/01-exchange.png)
+![NFT 仓位](docs/screenshots/02-nft-position.png)
+![交易回执](docs/screenshots/03-transaction-receipt.png)
+![20 用户模拟](docs/screenshots/05-simulation.png)
+
+手机布局截图：[04-mobile.png](docs/screenshots/04-mobile.png)。当前验证结果见 [reports/verification.md](reports/verification.md)。
+
+## 参考与提交
+
+- [课程起始框架](https://github.com/LBruyne/ZJU-blockchain-course-2026)
+- [Uniswap V2 报价公式](https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2Library.sol)
+- [Uniswap V2 份额与资金池](https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2Pair.sol)
+- [OpenZeppelin ERC721](https://docs.openzeppelin.com/contracts/5.x/erc721)
+- [ethers 6 文档](https://docs.ethers.org/v6/)
+
+本作业按要求将 V2 的可替代 LP Token 改为每次注入一份 ERC721 凭证，未照搬其完整架构。截图来源为此项目的本地运行；没有复制其他同学的实现。
+
+交作业前补上本人信息，推送至自己的公开 GitHub Fork，并录制 1～2 分钟操作视频。具体操作见 [docs/DEMO.md](docs/DEMO.md)。

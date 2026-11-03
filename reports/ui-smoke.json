@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-03T03:07:39.115Z",
+  "browser": "156.0.8078.74",
+  "runtimeErrors": [],
+  "summary": "20\n参与地址\n162\n兑换\n86\n添加流动性\n52\n移除流动性\n14\n不变量校验",
+  "screenshots": [
+    "01-exchange.png",
+    "05-simulation.png"
+  ]
+}
