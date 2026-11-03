@@ -1,6 +1,6 @@
 # MiniDEX 前端
 
-React + TypeScript + Vite + ethers 6，连接真实 Hardhat 测试链。完整操作见 [演示指南](../docs/DEMO.md)。
+React + TypeScript + Vite + ethers 6，连接 Hardhat 测试链。完整操作见 [使用说明](../docs/USAGE.md)。
 
 ```powershell
 npm ci

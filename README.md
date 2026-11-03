@@ -1,26 +1,24 @@
 # MiniDEX · AMM Exchange Lab
 
-基于恒定乘积 AMM 的本地去中心化交易所 DApp。项目从浙江大学区块链课程第二次作业模板扩展，实现 ERC20 测试币、用户创建交易池、双向兑换、ERC721 流动性仓位，以及 20 个真实链上地址的随机模拟。
+基于恒定乘积 AMM 的去中心化交易所 DApp，运行于本地 Hardhat 区块链。项目实现 ERC20 测试代币、用户创建交易池、双向兑换、ERC721 流动性仓位，以及 20 个独立地址的链上随机模拟。
 
-> 课程教学项目，运行于本机 Hardhat 链。当前完成基础要求，不包含多交易所与原子套利 Bonus。代码由 AI 辅助实现，提交者应阅读、理解并按课程要求说明使用情况。
+## 功能概览
 
-## 已完成功能
-
-| 作业要求 | 实现 |
+| 功能 | 实现 |
 | --- | --- |
 | 至少两个 ERC20 | 同一 TestToken 合约部署为 TKA、TKB；每地址每小时可领取 10,000 个 |
 | 用户创建 AMM 池子 | 前端输入两个标准 ERC20 地址建池；地址排序去重；支持多个交易对 |
 | 恒定乘积交易 | 双向兑换、0.3% 手续费、最低接收量、交易有效期 |
 | 添加流动性 | 按现有比例接受两币，未使用的资产保留在用户钱包 |
 | ERC721 流动性凭证 | 每次注入获得独立 NFT，链上保存池子、份额、投入、时间和原始提供者 |
-| 来源与仓位查询 | 展示每个池子的活跃仓位、原始提供者、当前所有者和本人 NFT |
+| 来源与仓位查询 | 展示每个池子的活跃仓位、原始提供者、当前所有者和当前账户的 NFT |
 | 移除流动性 | 当前 NFT 所有者整份赎回并销毁凭证；按当前储备分配资产与手续费权益 |
 | 多用户模拟 | 20 个地址执行 300 次随机操作；记录交易哈希并持续校验资产及份额 |
 | 简易前端 | React + ethers；支持 MetaMask、本地演示账户和交易回执 |
 
 ## 快速运行
 
-要求 Node.js 24、npm、Git；浏览器建议 Chrome。两个工程均提交了 package-lock.json，请优先使用 npm ci。
+运行环境为 Node.js 24、npm、Git 和 Chrome 浏览器。两个工程均包含 package-lock.json，使用 npm ci 安装锁定版本的依赖。
 
 Windows 一键启动，在本项目根目录执行：
 
@@ -71,7 +69,7 @@ npm ci
 npm start
 ```
 
-默认 RPC 为 `http://127.0.0.1:8545`，Chain ID 为 `31337`。完整按钮操作及钱包说明见 [演示指南](docs/DEMO.md)。
+默认 RPC 为 `http://127.0.0.1:8545`，Chain ID 为 `31337`。账户连接、代币领取和各项操作见 [使用说明](docs/USAGE.md)。
 
 ### MetaMask
 
@@ -117,7 +115,22 @@ npm run build
 npm run test:e2e
 ```
 
-浏览器验收需要节点和前端已启动，默认使用已安装的 Chrome。它会实际领取代币、部署额外的 TKC、在前端创建新池、添加流动性获得 NFT、兑换、查看回执和赎回，并检查移动端布局；会推进本地链时间以重新验证水龙头。自动化使用本地账户模式，MetaMask 扩展弹窗需本人手动确认。
+浏览器验收需要节点和前端已启动，默认使用已安装的 Chrome。测试覆盖领取代币、部署额外的 TKC、前端创建新池、添加流动性并获得 NFT、兑换、查看回执、赎回以及移动端布局。测试会推进本地链时间以重新验证水龙头，自动化交互使用本地账户模式。
+
+### 测试结果
+
+| 检查项目 | 结果 |
+| --- | --- |
+| 合约编译与类型检查 | 通过 |
+| 合约测试 | 19 项通过 |
+| 前端单元测试 | 8 项通过 |
+| 浏览器端到端测试 | 2 项通过 |
+| 前端生产构建 | 通过 |
+| 并发读取检查 | 模拟运行期间连续 12 次刷新通过 |
+| 20 用户模拟 | 300 次操作，162 次兑换、86 次添加、52 次移除 |
+| 模拟失败次数 | 0 |
+| 模拟持续时间 | 101.279 秒 |
+| 资产与份额不变量检查 | 14 次通过 |
 
 ## 实现分析
 
@@ -172,7 +185,7 @@ shares = min(amountA × totalShares / reserveA,
 
 ### 环境兼容
 
-沿用模板 Hardhat 3.19、ethers 6.17、OpenZeppelin 5.4 和 Solidity 0.8.20。编译器使用项目内固定的 `solc/soljson.js`，避免首次编译下载与当前 Windows 缓存跨盘链接问题。Windows 原生 EDR 包作为可选依赖锁定版本，其他平台可跳过。
+项目使用 Hardhat 3.19、ethers 6.17、OpenZeppelin 5.4 和 Solidity 0.8.20。编译器固定为项目内的 `solc/soljson.js`，降低运行时对编译器下载及全局缓存的依赖。Windows 原生 EDR 包作为可选依赖锁定版本，其他平台可跳过。
 
 ## 项目结构
 
@@ -190,6 +203,7 @@ frontend/
   src/generated/deployment.json 部署脚本自动生成
   e2e/workflow.spec.ts           浏览器真实链验收
 reports/                        运行报告
+docs/USAGE.md                   使用说明
 frontend/scripts/               验收与截图辅助脚本
 start.ps1 / stop.ps1             Windows 本地启动、停止
 ```
@@ -204,15 +218,3 @@ start.ps1 / stop.ps1             Windows 本地启动、停止
 ![20 用户模拟](docs/screenshots/05-simulation.png)
 
 手机布局截图：[04-mobile.png](docs/screenshots/04-mobile.png)。当前验证结果见 [reports/verification.md](reports/verification.md)。
-
-## 参考与提交
-
-- [课程起始框架](https://github.com/LBruyne/ZJU-blockchain-course-2026)
-- [Uniswap V2 报价公式](https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2Library.sol)
-- [Uniswap V2 份额与资金池](https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2Pair.sol)
-- [OpenZeppelin ERC721](https://docs.openzeppelin.com/contracts/5.x/erc721)
-- [ethers 6 文档](https://docs.ethers.org/v6/)
-
-本作业按要求将 V2 的可替代 LP Token 改为每次注入一份 ERC721 凭证，未照搬其完整架构。截图来源为此项目的本地运行；没有复制其他同学的实现。
-
-交作业前补上本人信息，推送至自己的公开 GitHub Fork，并录制 1～2 分钟操作视频。具体操作见 [docs/DEMO.md](docs/DEMO.md)。
